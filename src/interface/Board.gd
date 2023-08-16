@@ -3,6 +3,8 @@ extends Container
 signal lucky_round_change
 signal new_lucky_round
 signal lucky_draw_finished(number, lucky_round)
+signal request_resume_music
+signal request_stop_music
 
 var drum_roll_asset = preload('res://assets/sound/drum-roll.mp3')
 var success_reward = preload('res://assets/sound/success-reward.mp3')
@@ -249,6 +251,9 @@ func star_lucky_draw():
 	if lucky_draw_count > lucky_block_distance - 10 and lucky_draw_count != lucky_block_distance:
 		delay += pow(1.35, lucky_draw_count - (lucky_block_distance - 10)) * 0.1
 		
+		if lucky_draw_count == lucky_block_distance - 5:
+			emit_signal("request_stop_music")
+		
 		# 4 seconds
 		if lucky_draw_count == lucky_block_distance - 3:
 			var sound = $Sound as AudioStreamPlayer
@@ -325,12 +330,14 @@ func on_flash_finished(_anim_name, block):
 	var sound = $Sound as AudioStreamPlayer
 	sound.stream = completed_sound
 	sound.play()
-
+	
 
 func play_anim_waiting():
 	var state = get_meta("state")
 	if not state == "open":
 		return
+		
+	emit_signal("request_resume_music")
 
 	var blocks = get_tree().get_nodes_in_group("blocks")
 
